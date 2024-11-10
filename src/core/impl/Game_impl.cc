@@ -1,8 +1,14 @@
 #include "../Game.h"
 
-Game::Game() : window(nullptr), renderer(nullptr), quit(false) {
+Game::Game() : window(nullptr), renderer(nullptr), quit(false), board(nullptr) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::cerr << "Failed to initialize SDL: " << SDL_GetError() << std::endl;
+        exit(-1);
+    }
+
+    if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
+        std::cerr << "Failed to initialize SDL_image: " << IMG_GetError() << std::endl;
+        SDL_Quit();
         exit(-1);
     }
 
@@ -13,6 +19,7 @@ Game::Game() : window(nullptr), renderer(nullptr), quit(false) {
                               SDL_WINDOW_SHOWN);
     if (!window) {
         std::cerr << "Failed to create window: " << SDL_GetError() << std::endl;
+        IMG_Quit();
         SDL_Quit();
         exit(-1);
     }
@@ -21,14 +28,18 @@ Game::Game() : window(nullptr), renderer(nullptr), quit(false) {
     if (!renderer) {
         std::cerr << "Failed to create renderer: " << SDL_GetError() << std::endl;
         SDL_DestroyWindow(window);
+        IMG_Quit();
         SDL_Quit();
         exit(-1);
     }
+
+    board = std::make_unique<Board>(renderer);
 }
 
 Game::~Game() {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
+    IMG_Quit();
     SDL_Quit();
 }
 
@@ -48,21 +59,19 @@ void Game::processEvents() {
         } else if (e.type == SDL_MOUSEBUTTONDOWN) {
             int x, y;
             SDL_GetMouseState(&x, &y);
-            board.handleClick(x, y);
+            board->handleClick(x, y);
         }
     }
 }
 
 void Game::update() {
-    if (board.checkWin()) {
-        std::cout << "Player " << (board.getCurrentPlayer() == Player::PLAYER_X ? "X" : "O") << " wins!" << std::endl;
+    if (board->checkWin()) {
+        std::cout << "Player " << (board->getCurrentPlayer() == Player::PLAYER_X ? "O" : "X") << " wins!" << std::endl;
         quit = true;
     }
 }
 
 void Game::render() {
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderClear(renderer);
-    board.render(renderer);
+    board->render(renderer);
     SDL_RenderPresent(renderer);
 }

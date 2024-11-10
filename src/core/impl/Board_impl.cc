@@ -1,11 +1,31 @@
 #include "../Board.h"
+#include <SDL2/SDL_image.h>
 
-Board::Board() : currentPlayer(Player::PLAYER_X) {
+Board::Board(SDL_Renderer* renderer) : currentPlayer(Player::PLAYER_X), xTexture(nullptr), oTexture(nullptr) {
     for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 3; ++j) {
             board[i][j] = Player::NONE;
         }
     }
+
+    xTexture = loadTexture("/home/theweird-kid/dev/CPP/tic/src/static/X.png", renderer);
+    oTexture = loadTexture("/home/theweird-kid/dev/CPP/tic/src/static/O.png", renderer);
+}
+
+Board::~Board() {
+    SDL_DestroyTexture(xTexture);
+    SDL_DestroyTexture(oTexture);
+}
+
+SDL_Texture* Board::loadTexture(const std::string& path, SDL_Renderer* renderer) {
+    SDL_Surface* surface = IMG_Load(path.c_str());
+    if (!surface) {
+        std::cerr << "Failed to load texture: " << IMG_GetError() << std::endl;
+        return nullptr;
+    }
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    return texture;
 }
 
 void Board::handleClick(int x, int y) {
@@ -18,22 +38,28 @@ void Board::handleClick(int x, int y) {
 }
 
 void Board::render(SDL_Renderer* renderer) {
+    // Set background color to white
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderClear(renderer);
+
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            SDL_Rect rect = { j * 200, i * 200, 200, 200 };
+            if (board[i][j] == Player::PLAYER_X) {
+                SDL_RenderCopy(renderer, xTexture, nullptr, &rect);
+            } else if (board[i][j] == Player::PLAYER_O) {
+                SDL_RenderCopy(renderer, oTexture, nullptr, &rect);
+            }
+        }
+    }
+
+    // Set draw color to black for grid
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     for (int i = 1; i < 3; ++i) {
         SDL_RenderDrawLine(renderer, i * 200, 0, i * 200, 600);
         SDL_RenderDrawLine(renderer, 0, i * 200, 600, i * 200);
     }
 
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            if (board[i][j] == Player::PLAYER_X) {
-                SDL_RenderDrawLine(renderer, j * 200, i * 200, (j + 1) * 200, (i + 1) * 200);
-                SDL_RenderDrawLine(renderer, (j + 1) * 200, i * 200, j * 200, (i + 1) * 200);
-            } else if (board[i][j] == Player::PLAYER_O) {
-                drawCircle(renderer, j * 200 + 100, i * 200 + 100, 100);
-            }
-        }
-    }
 }
 
 bool Board::checkWin() {
@@ -50,30 +76,12 @@ Player Board::getCurrentPlayer() const {
     return currentPlayer;
 }
 
-void Board::drawCircle(SDL_Renderer* renderer, int x, int y, int radius) {
-    int offsetX, offsetY, d;
-    offsetX = 0;
-    offsetY = radius;
-    d = radius - 1;
-    while (offsetY >= offsetX) {
-        SDL_RenderDrawPoint(renderer, x + offsetX, y + offsetY);
-        SDL_RenderDrawPoint(renderer, x + offsetY, y + offsetX);
-        SDL_RenderDrawPoint(renderer, x - offsetX, y + offsetY);
-        SDL_RenderDrawPoint(renderer, x - offsetY, y + offsetX);
-        SDL_RenderDrawPoint(renderer, x + offsetX, y - offsetY);
-        SDL_RenderDrawPoint(renderer, x + offsetY, y - offsetX);
-        SDL_RenderDrawPoint(renderer, x - offsetX, y - offsetY);
-        SDL_RenderDrawPoint(renderer, x - offsetY, y - offsetX);
-        if (d >= 2 * offsetX) {
-            d -= 2 * offsetX + 1;
-            offsetX += 1;
-        } else if (d < 2 * (radius - offsetY)) {
-            d += 2 * offsetY - 1;
-            offsetY -= 1;
-        } else {
-            d += 2 * (offsetY - offsetX - 1);
-            offsetY -= 1;
-            offsetX += 1;
+std::vector<std::vector<int>> Board::getState() const {
+    std::vector<std::vector<int>> state(3, std::vector<int>(3));
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            state[i][j] = static_cast<int>(board[i][j]);
         }
     }
+    return state;
 }

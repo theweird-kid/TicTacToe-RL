@@ -2,7 +2,9 @@
 #define GAME_H
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include <iostream>
+#include <memory>
 #include "Board.h"
 
 class Game {
@@ -19,7 +21,7 @@ private:
     SDL_Window* window;
     SDL_Renderer* renderer;
     bool quit;
-    Board board;
+    std::unique_ptr<Board> board;
 };
 
 #endif
