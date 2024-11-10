@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/game.dir/src/main.cc.o CMakeFiles/game.dir/src/core/impl/Game_impl.cc.o CMakeFiles/game.dir/src/core/impl/Board_impl.cc.o -o game  /usr/lib/x86_64-linux-gnu/libSDL2.so 

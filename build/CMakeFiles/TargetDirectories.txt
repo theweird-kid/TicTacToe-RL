@@ -1,0 +1,3 @@
+/home/theweird-kid/dev/CPP/tic/build/CMakeFiles/game.dir
+/home/theweird-kid/dev/CPP/tic/build/CMakeFiles/edit_cache.dir
+/home/theweird-kid/dev/CPP/tic/build/CMakeFiles/rebuild_cache.dir
